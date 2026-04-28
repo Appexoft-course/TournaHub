@@ -8,7 +8,7 @@ from app.db.base import Base
 class Match(Base):
     __tablename__ = "matches"
  
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     game_type = Column(String(100), nullable=False)
     started_at = Column(DateTime(timezone=True), nullable=True)
     end_at = Column(DateTime(timezone=True), nullable=True)

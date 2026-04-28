@@ -7,7 +7,7 @@ from app.db.base import Base
 class Tournament(Base):
     __tablename__ = "tournaments"
  
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     game_type = Column(String(100), nullable=False)
     team_id = Column(Integer, nullable=True)

@@ -8,10 +8,10 @@ from alembic import context
 from app.core.config import settings
 from app.db.base import Base
 
-from app.models.friendship import Friendship
-from app.models.match import Match
-from app.models.tournament import Tournament
-from app.models.user import User
+from app.models.friendship import Friendship  # noqa: F401
+from app.models.match import Match  # noqa: F401
+from app.models.tournament import Tournament  # noqa: F401
+from app.models.user import User  # noqa: F401
 
 
 config = context.config
