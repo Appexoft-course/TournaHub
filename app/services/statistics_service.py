@@ -42,9 +42,9 @@ async def get_all_users_statistics(db: AsyncSession):
     return [build_user_statistics(user) for user in users]
 
 
-async def get_leaderboard(db: AsyncSession):
+async def get_leaderboard(db: AsyncSession, limit: int = 10):
     result = await db.execute(
-        select(User).order_by(User.elo.desc(), User.wins.desc())
+        select(User).order_by(User.elo.desc(), User.wins.desc()).limit(limit)
     )
     users = result.scalars().all()
 

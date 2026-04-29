@@ -25,5 +25,5 @@ async def all_users_stats(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/leaderboard", response_model=List[LeaderboardUserResponse])
-async def leaderboard(db: AsyncSession = Depends(get_db)):
-    return await get_leaderboard(db)
+async def leaderboard(limit: int = 10, db: AsyncSession = Depends(get_db)):
+    return await get_leaderboard(db, limit)
