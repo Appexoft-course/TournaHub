@@ -1,20 +1,17 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 
 from app.models.user import User
 
 
-def get_user_statistics(db: Session, user_id: int):
-    user = db.query(User).filter(User.id == user_id).first()
+def calculate_winrate(wins: int, loses: int) -> float:
+    total_matches = wins + loses
+    return round((wins / total_matches) * 100, 2) if total_matches else 0
 
-    if not user:
-        raise Exception("User not found")
 
+def build_user_statistics(user: User) -> dict:
     total_matches = user.wins + user.loses
-
-    if total_matches == 0:
-        winrate = 0
-    else:
-        winrate = round((user.wins / total_matches) * 100, 2)
 
     return {
         "user_id": user.id,
@@ -23,66 +20,39 @@ def get_user_statistics(db: Session, user_id: int):
         "wins": user.wins,
         "loses": user.loses,
         "total_matches": total_matches,
-        "winrate": winrate,
+        "winrate": calculate_winrate(user.wins, user.loses),
         "elo": user.elo,
         "rating": user.rating,
     }
 
 
-def get_all_users_statistics(db: Session):
-    users = db.query(User).all()
+async def get_user_statistics(db: AsyncSession, user_id: int):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
 
-    result = []
-
-    for user in users:
-        total_matches = user.wins + user.loses
-
-        if total_matches == 0:
-            winrate = 0
-        else:
-            winrate = round((user.wins / total_matches) * 100, 2)
-
-        result.append(
-            {
-                "user_id": user.id,
-                "name": user.name,
-                "wins": user.wins,
-                "loses": user.loses,
-                "total_matches": total_matches,
-                "winrate": winrate,
-                "elo": user.elo,
-                "rating": user.rating,
-            }
-        )
-
-    return result
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return build_user_statistics(user)
 
 
-def get_leaderboard(db: Session):
-    users = db.query(User).order_by(User.wins.desc(), User.elo.desc()).all()
+async def get_all_users_statistics(db: AsyncSession):
+    result = await db.execute(select(User))
+    users = result.scalars().all()
+
+    return [build_user_statistics(user) for user in users]
+
+
+async def get_leaderboard(db: AsyncSession):
+    result = await db.execute(
+        select(User).order_by(User.elo.desc(), User.wins.desc())
+    )
+    users = result.scalars().all()
 
     leaderboard = []
 
     for index, user in enumerate(users, start=1):
-        total_matches = user.wins + user.loses
-
-        if total_matches == 0:
-            winrate = 0
-        else:
-            winrate = round((user.wins / total_matches) * 100, 2)
-
-        leaderboard.append(
-            {
-                "place": index,
-                "user_id": user.id,
-                "name": user.name,
-                "wins": user.wins,
-                "loses": user.loses,
-                "total_matches": total_matches,
-                "winrate": winrate,
-                "elo": user.elo,
-                "rating": user.rating,
-            }
-        )
+        user_stats = build_user_statistics(user)
+        user_stats["place"] = index
+        leaderboard.append(user_stats)
 
     return leaderboard

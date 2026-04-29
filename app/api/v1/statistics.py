@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.services.statistics_service import (
@@ -12,15 +12,15 @@ router = APIRouter()
 
 
 @router.get("/users/{user_id}")
-def user_stats(user_id: int, db: Session = Depends(get_db)):
-    return get_user_statistics(db, user_id)
+async def user_stats(user_id: int, db: AsyncSession = Depends(get_db)):
+    return await get_user_statistics(db, user_id)
 
 
 @router.get("/users")
-def all_users_stats(db: Session = Depends(get_db)):
-    return get_all_users_statistics(db)
+async def all_users_stats(db: AsyncSession = Depends(get_db)):
+    return await get_all_users_statistics(db)
 
 
 @router.get("/leaderboard")
-def leaderboard(db: Session = Depends(get_db)):
-    return get_leaderboard(db)
+async def leaderboard(db: AsyncSession = Depends(get_db)):
+    return await get_leaderboard(db)
