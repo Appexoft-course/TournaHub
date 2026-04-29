@@ -3,6 +3,8 @@ from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from typing import Optional
+
  
 from app.db.base import Base
  
@@ -21,7 +23,7 @@ class User(Base):
     elo = Column(Integer, default=1000)
     wins = Column(Integer, default=0)
     loses = Column(Integer, default=0)
-    oauth_provider: str | None = None
+    oauth_provider: Optional[str] = None
     refresh_token = Column(String, nullable=True)
  
     friendships = relationship(
