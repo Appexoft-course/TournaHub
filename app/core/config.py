@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     DB_NAME: str
     DB_HOST: str
     DB_PORT: int
+    secret_key: str
+    algorithm: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
