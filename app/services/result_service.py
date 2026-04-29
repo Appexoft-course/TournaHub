@@ -1,20 +1,23 @@
-from sqlalchemy.orm import Session
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.match import Match
 from app.models.user import User
 
 
-def update_match_result(
-    db: Session,
+async def update_match_result(
+    db: AsyncSession,
     match_id: int,
     score_1: int,
     score_2: int,
     mvp_id: int | None = None,
 ):
-    match = db.query(Match).filter(Match.id == match_id).first()
+    result = await db.execute(select(Match).where(Match.id == match_id))
+    match = result.scalar_one_or_none()
 
     if not match:
-        raise Exception("Match not found")
+        raise HTTPException(status_code=404, detail="Match not found")
 
     match.score_1 = score_1
     match.score_2 = score_2
@@ -29,12 +32,15 @@ def update_match_result(
         match.winner = None
         match.loser = None
 
-    if mvp_id:
+    if mvp_id is not None:
         match.mvp_id = mvp_id
 
     if match.winner and match.loser:
-        winner = db.query(User).filter(User.id == match.winner).first()
-        loser = db.query(User).filter(User.id == match.loser).first()
+        winner_result = await db.execute(select(User).where(User.id == match.winner))
+        loser_result = await db.execute(select(User).where(User.id == match.loser))
+
+        winner = winner_result.scalar_one_or_none()
+        loser = loser_result.scalar_one_or_none()
 
         if winner:
             winner.wins += 1
@@ -42,7 +48,7 @@ def update_match_result(
         if loser:
             loser.loses += 1
 
-    db.commit()
-    db.refresh(match)
+    await db.commit()
+    await db.refresh(match)
 
     return match
