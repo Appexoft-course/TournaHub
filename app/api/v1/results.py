@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.result import MatchResultUpdate
+from app.schemas.result import MatchResultUpdate, MatchResultResponse
 from app.services.result_service import update_match_result
 
 router = APIRouter()
 
 
-@router.patch("/matches/{match_id}")
+@router.patch("/matches/{match_id}", response_model=MatchResultResponse)
 async def update_result(
     match_id: int,
     data: MatchResultUpdate,
