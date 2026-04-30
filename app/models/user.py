@@ -1,5 +1,5 @@
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -18,7 +18,7 @@ class User(Base):
     description = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     favorite_games = Column(ARRAY(String), nullable=True)
-    elo = Column(Integer, default=1000)
+    elo = Column(Integer, default=400)
     wins = Column(Integer, default=0)
     loses = Column(Integer, default=0)
     oauth_provider = Column(String, nullable=True)
