@@ -37,5 +37,8 @@ class User(Base):
         secondary=tournament_participants,
         back_populates="participants"
     )
-    
+tournament_participations = relationship(
+    "TournamentParticipant", back_populates="user", cascade="all, delete-orphan"
+)
+
     __allow_unmapped__ = True
