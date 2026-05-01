@@ -36,19 +36,23 @@ async def update_match_result(
         match.mvp_id = mvp_id
 
     if match.winner and match.loser:
-        winner_result = await db.execute(select(User).where(User.id == match.winner))
-        loser_result = await db.execute(select(User).where(User.id == match.loser))
+        winner = db.query(User).filter(User.id == match.winner).first()
+        loser = db.query(User).filter(User.id == match.loser).first()
 
-        winner = winner_result.scalar_one_or_none()
-        loser = loser_result.scalar_one_or_none()
+    if winner:
+        winner.wins += 1
 
-        if winner:
-            winner.wins += 1
+    if loser:
+        loser.loses += 1
 
-        if loser:
-            loser.loses += 1
+    if winner and loser:
+        calculate_elo(winner, loser)
 
-    await db.commit()
-    await db.refresh(match)
+def calculate_elo(winner, loser, k=32):
+    expected_winner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
+    expected_loser = 1 / (1 + 10 ** ((winner.elo - loser.elo) / 400))
+
+    winner.elo = int(winner.elo + k * (1 - expected_winner))
+    loser.elo = int(loser.elo + k * (0 - expected_loser))
 
     return match
