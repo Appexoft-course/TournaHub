@@ -13,30 +13,27 @@ from app.services.tournament_service import TournamentService
 security = HTTPBearer()
 
 
-# ---------- CURRENT USER ----------
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
 ):
     try:
         payload = decode_token(credentials.credentials)
-    except Exception:
+    except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
-
+    
     try:
         user_id = int(payload["sub"])
-    except (KeyError, ValueError):
+    except (KeyError, ValueError) as e:
         raise HTTPException(status_code=401, detail="Invalid token payload")
 
     user = await get_user_by_id(db, user_id)
-
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
     return user
 
 
-# ---------- SERVICES ----------
 async def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(db)
 

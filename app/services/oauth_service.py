@@ -103,8 +103,8 @@ class OAuthService:
             await self.db.commit()
             await self.db.refresh(user)
 
-        access_token = create_token({"sub": str(user.id), "email": user.email})
-        refresh_token = create_refresh_token({"sub": str(user.id), "email": user.email})
+        access_token = create_token(user.id)
+        refresh_token = create_refresh_token(user.id)
 
         user.refresh_token = hash_password(refresh_token)
         await self.db.commit()

@@ -1,13 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from app.models.tournament import Tournament
 from app.schemas.tournament import CreateTournament
+from app.models.user import User
 
 
-from app.models.user import User 
+async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
 
-async def create_tournament(db: AsyncSession, data: CreateTournament, user_id: int):
+
+async def create_tournament(db: AsyncSession, data: CreateTournament, user_id: int) -> Tournament:
     tournament = Tournament(
         owner_id=user_id,
         name=data.name,
@@ -20,17 +23,14 @@ async def create_tournament(db: AsyncSession, data: CreateTournament, user_id: i
         max_players=data.max_players,
     )
 
-    # 👉 якщо передали учасників
     if data.participant_ids:
         result = await db.execute(
             select(User).where(User.id.in_(data.participant_ids))
         )
         users = result.scalars().all()
-
         tournament.participants.extend(users)
 
     db.add(tournament)
     await db.commit()
     await db.refresh(tournament)
-
     return tournament
