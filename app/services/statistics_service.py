@@ -22,7 +22,6 @@ def build_user_statistics(user: User) -> dict:
         "total_matches": total_matches,
         "winrate": calculate_winrate(user.wins, user.loses),
         "elo": user.elo,
-        "rating": user.rating,
     }
 
 
