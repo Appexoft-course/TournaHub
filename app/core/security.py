@@ -21,7 +21,8 @@ def verify_password(plain: str, hashed: str) -> bool:
         return pwd_context.verify(plain, hashed)
     except Exception:
         return False
-
+        
+hash_password = get_password_hash
 
 # ---------- ACCESS TOKEN ----------
 def create_token(user_id: int) -> str:

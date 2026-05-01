@@ -26,7 +26,6 @@ async def register(
 
 @router.post("/login")
 async def login(db: AsyncSession = Depends(get_db)):
-    # тут ти працюєш з БД через db
     return {"msg": "login ok"}
 
 

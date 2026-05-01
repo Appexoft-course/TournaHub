@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
-from app.models.tournament_participant import TournamentParticipant
 
 class TournamentParticipant(Base):
     __tablename__ = "tournament_participants"
