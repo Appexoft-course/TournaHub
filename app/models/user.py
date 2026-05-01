@@ -22,8 +22,7 @@ class User(Base):
     elo = Column(Integer, default=400)
     wins = Column(Integer, default=0)
     loses = Column(Integer, default=0)
-    oauth_provider = Column(String, nullable=True)
-    oauth_id = Column(String, unique=True, nullable=True)
+    oauth_provider: Optional[str] = None
     refresh_token = Column(String, nullable=True)
  
     friendships = relationship(
