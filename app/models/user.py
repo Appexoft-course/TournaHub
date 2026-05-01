@@ -1,16 +1,15 @@
-
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.models.tournament_participant import tournament_participants 
- 
+from app.models.tournament_participant import tournament_participants
 from app.db.base import Base
- 
- 
+
+
 class User(Base):
     __tablename__ = "users"
- 
+    __allow_unmapped__ = True
+
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     password = Column(String(255), nullable=True)
@@ -22,19 +21,22 @@ class User(Base):
     elo = Column(Integer, default=400)
     wins = Column(Integer, default=0)
     loses = Column(Integer, default=0)
-    oauth_provider: Optional[str] = None
+    oauth_provider = Column(String, nullable=True)
+    oauth_id = Column(String, unique=True, nullable=True)
     refresh_token = Column(String, nullable=True)
- 
+
     friendships = relationship(
         "Friendship",
         foreign_keys="Friendship.user_id",
         back_populates="user"
     )
-    friend_of = relationship("Friendship", foreign_keys="Friendship.friend_id", back_populates="friend")
+    friend_of = relationship(
+        "Friendship",
+        foreign_keys="Friendship.friend_id",
+        back_populates="friend"
+    )
     tournaments = relationship(
         "Tournament",
         secondary=tournament_participants,
         back_populates="participants"
     )
-    
-    __allow_unmapped__ = True
