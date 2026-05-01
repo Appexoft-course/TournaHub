@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends,Request
-
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
 from app.db.session import get_db
 from app.schemas.user import (
     UserCreate,
@@ -8,12 +8,9 @@ from app.schemas.user import (
     RegisterResponse,
     RefreshRequest
 )
-
 from app.services.auth_service import AuthService
-
-from app.api.deps import get_auth_service
-from app.core.security import hash_password
-from app.models.user import User
+from app.services.oauth_service import OAuthService
+from app.api.deps import get_auth_service, get_oauth_service
 
 router = APIRouter()
 
@@ -35,9 +32,27 @@ async def login(
 ):
     return await service.login_user(data)
 
+
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
     data: RefreshRequest,
     service: AuthService = Depends(get_auth_service)
 ):
     return await service.refresh_tokens(data.refresh_token)
+
+
+@router.get("/google")
+async def google_login(service: OAuthService = Depends(get_oauth_service)):
+    state = service.generate_state()
+    return RedirectResponse(service.get_google_auth_url(state))
+
+@router.get("/google/callback", response_model=TokenResponse)
+async def google_callback(
+    code: str,
+    state: str,
+    service: OAuthService = Depends(get_oauth_service),
+):
+    return await service.login_or_register(
+        code=code,
+        state=state,
+    )
