@@ -12,7 +12,7 @@ class User(Base):
  
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
-    password = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     is_active = Column(Boolean, default=True)
     description = Column(Text, nullable=True)
@@ -21,7 +21,8 @@ class User(Base):
     elo = Column(Integer, default=1000)
     wins = Column(Integer, default=0)
     loses = Column(Integer, default=0)
-    oauth_provider: str | None = None
+    oauth_provider = Column(String, nullable=True)
+    oauth_id = Column(String, unique=True, nullable=True)
     refresh_token = Column(String, nullable=True)
  
     friendships = relationship(
