@@ -12,7 +12,6 @@ class UserStatisticsResponse(BaseModel):
     total_matches: int
     winrate: float
     elo: int
-    rating: float
 
 
 class LeaderboardUserResponse(UserStatisticsResponse):
