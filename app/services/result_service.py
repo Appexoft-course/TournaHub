@@ -42,14 +42,20 @@ async def update_match_result(
         winner = winner_result.scalar_one_or_none()
         loser = loser_result.scalar_one_or_none()
 
-    if winner:
-        winner.wins += 1
+        if winner:
+            winner.wins += 1
 
-    if loser:
-        loser.loses += 1
+        if loser:
+            loser.loses += 1
 
-    if winner and loser:
-        calculate_elo(winner, loser)
+        if winner and loser:
+            calculate_elo(winner, loser)
+
+    await db.commit()
+    await db.refresh(match)
+
+    return match
+
 
 def calculate_elo(winner, loser, k=32):
     expected_winner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
@@ -57,5 +63,3 @@ def calculate_elo(winner, loser, k=32):
 
     winner.elo = int(winner.elo + k * (1 - expected_winner))
     loser.elo = int(loser.elo + k * (0 - expected_loser))
-
-    return match
