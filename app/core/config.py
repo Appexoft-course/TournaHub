@@ -6,8 +6,11 @@ class Settings(BaseSettings):
     DB_NAME: str
     DB_HOST: str
     DB_PORT: int
-    secret_key: str
-    algorithm: str
+    SECRET_KEY: str
+    ALGORITHM: str
+    GOOGLE_CLIENT_ID: str | None = None
+    GOOGLE_CLIENT_SECRET: str | None = None
+    GOOGLE_REDIRECT_URI: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
