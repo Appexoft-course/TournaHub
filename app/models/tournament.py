@@ -1,20 +1,34 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, String, Text, ForeignKey
+from sqlalchemy.dialects.postgresql import ARRAY
+from app.models.tournament_participant import tournament_participants
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
+
 class Tournament(Base):
     __tablename__ = "tournaments"
-    id = Column(Integer, primary_key=True, index=True)
 
-    matches = relationship("Match", back_populates="tournament")
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(255), nullable=False)
+    game_type = Column(ARRAY(String), nullable=False)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    end_at = Column(DateTime(timezone=True), nullable=True)
+    min_elo = Column(Integer, default=0)
+    max_elo = Column(Integer, default=9999)
+    description = Column(Text, nullable=True)
+    max_players = Column(Integer, nullable=False)
 
-class Match(Base):
-    __tablename__ = "matches"
-    id = Column(Integer, primary_key=True, index=True)
-    tournament_id = Column(Integer, ForeignKey("tournaments.id"))
-    player1_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    player2_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    winner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    next_match_id = Column(Integer, ForeignKey("matches.id"), nullable=True)
+    # турнірна сітка 
+    status = Column(String(50), default="created", nullable=False)
 
-    tournament = relationship("Tournament", back_populates="matches")
+    matches = relationship(
+        "Match",
+        back_populates="tournament",
+        order_by="Match.round, Match.match_index",
+    )
+    participants = relationship(
+        "User",
+        secondary=tournament_participants,
+        back_populates="tournaments"
+    )

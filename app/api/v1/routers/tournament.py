@@ -1,42 +1,45 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.db.session import get_db
-from app.schemas.tournament import TournamentSchema, MatchSchema
-from app.services.tournament_service import create_tournament, set_winner
-from app.models.user import User
-from app.models.tournament import Tournament, Match
+from fastapi import APIRouter,Depends
+from app.schemas.tournament import CreateTournament
+from app.services.tournament_service import TournamentService
+from app.api.deps import get_tournament_service
+from app.schemas.tournament import CreateTournament, StartTournamentRequest, SetWinnerRequest
+router = APIRouter()
 
-router = APIRouter(prefix="/tournament", tags=["Tournament"])
+from app.api.deps import get_current_user
 
-# POST: створення турніру
-@router.post("/create", response_model=TournamentSchema)
-def create(players: list[int], db: Session = Depends(get_db)):
-    users = db.query(User).filter(User.id.in_(players)).all()
-    if len(users) > 16:
-        raise HTTPException(status_code=400, detail="Максимум 16 гравців")
-    tournament = create_tournament(db, users)
-    return tournament
+@router.post("/create")
+async def create(
+    data: CreateTournament,
+    service: TournamentService = Depends(get_tournament_service),
+    user = Depends(get_current_user)
+):
+    return await service.create(data, user.id)
 
-# POST: встановити переможця матчу
-@router.post("/match/{match_id}/winner", response_model=MatchSchema)
-def winner(match_id: int, winner_id: int, db: Session = Depends(get_db)):
-    match = set_winner(db, match_id, winner_id)
-    if not match:
-        raise HTTPException(status_code=404, detail="Матч не знайдено")
-    return match
+    @router.post("/{tournament_id}/start")
+async def start_bracket(
+    tournament_id: int,
+    data: StartTournamentRequest,
+    service: TournamentService = Depends(get_tournament_service),
+    user = Depends(get_current_user),
+):
+    return await service.start_bracket(tournament_id, data.player_ids)
 
-# GET: отримати турнір по id
-@router.get("/{tournament_id}", response_model=TournamentSchema)
-def get_tournament(tournament_id: int, db: Session = Depends(get_db)):
-    tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
-    if not tournament:
-        raise HTTPException(status_code=404, detail="Турнір не знайдено")
-    return tournament
 
-# GET: отримати матч по id
-@router.get("/match/{match_id}", response_model=MatchSchema)
-def get_match(match_id: int, db: Session = Depends(get_db)):
-    match = db.query(Match).filter(Match.id == match_id).first()
-    if not match:
-        raise HTTPException(status_code=404, detail="Матч не знайдено")
-    return match
+@router.post("/{tournament_id}/matches/{match_id}/winner")
+async def set_winner(
+    tournament_id: int,
+    match_id: int,
+    body: SetWinnerRequest,
+    service: TournamentService = Depends(get_tournament_service),
+    user = Depends(get_current_user),
+):
+    return await service.set_match_winner(tournament_id, match_id, body.slot_id)
+
+
+@router.get("/{tournament_id}/bracket")
+async def get_bracket(
+    tournament_id: int,
+    service: TournamentService = Depends(get_tournament_service),
+    user = Depends(get_current_user),
+):
+    return await service.get_bracket(tournament_id)
