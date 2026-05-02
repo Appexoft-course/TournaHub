@@ -24,6 +24,8 @@ class User(Base):
     oauth_provider = Column(String, nullable=True)
     oauth_id = Column(String, unique=True, nullable=True)
     refresh_token = Column(String, nullable=True)
+    player_level = Column(String, default="new player" )
+    win_streak = Column(Integer, default=0)
  
     friendships = relationship(
         "Friendship",
