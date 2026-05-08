@@ -48,7 +48,20 @@ async def update_match_result(
         if loser:
             loser.loses += 1
 
+        if winner and loser:
+            calculate_elo(winner, loser)
+
     await db.commit()
     await db.refresh(match)
 
     return match
+
+
+def calculate_elo(winner: User, loser: User, k: int = 32) -> None:
+   
+    expected_winner = 1 / (1 + 10 ** ((loser.elo - winner.elo) / 400))
+    expected_loser = 1 - expected_winner
+
+    winner.elo = round(winner.elo + k * (1 - expected_winner))
+    loser.elo = round(loser.elo + k * (0 - expected_loser))
+    
